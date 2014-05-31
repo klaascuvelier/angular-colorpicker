@@ -5,6 +5,63 @@
         '$timeout',
         function ($timeout) {
 
+            function toRGBA(h, s, b, a)
+            {
+                var R, G, B, X, C;
+
+                h *= 360;
+                h = (h % 360) / 60;
+
+                C = b * s;
+                X = C * (1 - Math.abs(h % 2 - 1));
+                R = G = B = b - C;
+
+                h = ~~h;
+                R += [C, X, 0, 0, X, C][h];
+                G += [X, C, C, X, 0, 0][h];
+                B += [0, 0, X, C, C, X][h];
+
+                return {
+                    r: Math.round(R*255),
+                    g: Math.round(G*255),
+                    b: Math.round(B*255),
+                    a: a
+                };
+            }
+
+            function toHex(h, s, b, a)
+            {
+                var rgb = this.toRGB(h, s, b, a);
+                return '#'+((1 << 24) | (parseInt(rgb.r) << 16) | (parseInt(rgb.g) << 8) | parseInt(rgb.b)).toString(16).substr(1);
+            }
+
+            function toHSL(h, s, b, a)
+            {
+                var H = h,
+                    L = (2 - s) * b,
+                    S = s * b;
+
+                if (L > 0 && L <= 1) {
+                    S /= L;
+                } else {
+                    S /= 2 - L;
+                }
+
+                L /= 2;
+
+                if (S > 1) {
+                    S = 1;
+                }
+
+                return {
+                    h: H,
+                    s: S,
+                    l: L,
+                    a: a
+                };
+            }
+
+
             return {
                 restrict: 'EA',
                 template: '<div class="colorpicker">' +
@@ -26,6 +83,29 @@
 
                     $scope.saturationIndicatorStyle = { left: 0, top: 0 };
                     $scope.hueIndicatorStyle = { top: '50%' };
+
+                    $scope.value = {
+                        h: 1,
+                        s: 1,
+                        b: 1,
+                        a: 1
+                    };
+
+                    $scope.setHue =  function(h) {
+                        this.value.h = 1 - h;
+                    };
+
+                    $scope.setSaturation = function(s) {
+                        this.value.s = s;
+                    };
+
+                    $scope.setLightness = function(b) {
+                        this.value.b = 1 - b;
+                    };
+
+                    $scope.setAlpha = function(a) {
+                        this.value.a = parseInt((1 - a) * 100, 10) / 100;
+                    };
 
 
                     // Move hue indicator on click
