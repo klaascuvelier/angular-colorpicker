@@ -1,0 +1,17 @@
+<!doctype html />
+<html ng-app="Example">
+    <head>
+        <title>Color picker example</title>
+        <link rel="stylesheet" type="text/css" href="../dist/colorpicker.css" />
+    </head>
+
+    <body ng-controller="MainController">
+        <input type="text" ng-model="color" />
+
+        <div colorpicker ng-model="color"></div>
+
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+        <script src="../dist/colorpicker.js"></script>
+        <script src="app.js"></script>
+    </body>
+</html>
