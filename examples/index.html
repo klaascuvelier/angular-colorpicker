@@ -5,7 +5,7 @@
         <link rel="stylesheet" type="text/css" href="../dist/colorpicker.css" />
     </head>
 
-    <body ng-controller="MainController">
+    <body ng-controller="MainController" ng-style="{ background: '#' + color }">
         <input type="text" ng-model="color" />
 
         <div colorpicker ng-model="color"></div>
