@@ -249,39 +249,24 @@
 
                     $scope.parseModel = function (value) {
 
-                        // Don't do anything if the value is invalid
-                        if (!(/^([a-f0-9]{6})$/i.test(value))) {
-                            return;
-                        }
+                        var updateModel = false;
 
-                        rgba = hexToRgba(value);
-                        $scope.value = rgbaToHsla(rgba.r, rgba.g, rgba.b, rgba.a);
-
-
-                        $scope.updateView(false);
-
-
-
-
-                        return;
-/*
-k
                         // Strip # at start
                         if (value.substr(0, 1) === '#') {
                             value = value.substr(1);
                         }
 
-                        // If hex value matches 3 char value -> wait 500ms and then update to 6 char
+                        // Convert small hex value
                         if (/^([a-f0-9]{3})$/i.test(value)) {
-                            value = value.split('');
-
-                            modelTimeout = $timeout(function () {
-                                modelController.$setViewValue(parts[0] + parts[0] + parts[1] + parts[1] + parts[2] + parts[2]);
-                            }, 500);
-
-                            return;
+                            value = value[0] + value[0] + value[1] + value[1] + value[2] + value[2];
+                            updateModel = true;
                         }
-                        */
+
+                        if (/^([a-f0-9]{6})$/i.test(value)) {
+                            rgba = hexToRgba(value);
+                            $scope.value = rgbaToHsla(rgba.r, rgba.g, rgba.b, rgba.a);
+                            $scope.updateView(updateModel);
+                        }
                     };
 
                     $scope.updateView = function (updateViewValue)
