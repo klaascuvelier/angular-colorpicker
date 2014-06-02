@@ -1,6 +1,6 @@
 {
     "name": "angular-colorpicker",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Angular colorpicker without dependencies",
     "main": "dist/color-picker.js",
     "keywords": [

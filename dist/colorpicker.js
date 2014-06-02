@@ -175,18 +175,12 @@
                     '</div>' ,
                 link: function ($scope, iElement, iAttrs, controllers) {
 
-                    var offsetTop           = iElement[0].offsetTop,
-                        offsetLeft          = iElement[0].offsetLeft,
-                        $saturation         = angular.element(iElement[0].querySelectorAll('.colorpicker-saturation')),
-                        saturationWidth     = $saturation[0].clientWidth,
-                        saturationHeight    = $saturation[0].clientHeight,
-                        $hue                = angular.element(iElement[0].querySelectorAll('.colorpicker-hue')),
-                        hueHeight           = $hue[0].clientHeight,
-                        saturationMouseDown = false,
+                    var saturationMouseDown = false,
                         hueMouseDown        = false,
                         modelController     = controllers[0],
                         initial             = true,
                         rgba                = {},
+                        offsetTop, offsetLeft, $saturation, $hue, saturationWidth, saturationHeight, hueHeight,
                         hueTimeout, saturationTimeout, modelTimeout;
 
 
@@ -196,8 +190,54 @@
 
                     $scope.value = {};
 
+                    $scope.init = function () {
+                        offsetTop           = iElement[0].offsetTop;
+                        offsetLeft          = iElement[0].offsetLeft;
+                        $saturation         = angular.element(iElement[0].querySelectorAll('.colorpicker-saturation'));
+                        saturationWidth     = $saturation[0].clientWidth;
+                        saturationHeight    = $saturation[0].clientHeight;
+                        $hue                = angular.element(iElement[0].querySelectorAll('.colorpicker-hue'));
+                        hueHeight           = $hue[0].clientHeight;
 
-                    $scope.setHue =  function(h) {
+                        // Move hue indicator on click
+                        $hue.bind('click mousemove', function (event) {
+                            if (event.type === 'click' || hueMouseDown) {
+                                $timeout.cancel(hueTimeout);
+                                hueTimeout = $timeout((function (event) {
+                                    return function () {
+                                        $scope.setHue(1 - ((event.y - offsetTop) / hueHeight));
+                                        $scope.updateView();
+                                    };
+                                })(event), 10);
+                            }
+                        });
+
+                        // Enable mousemove for indicator
+                        $hue.bind('mouseup mousedown', function (event) {
+                            hueMouseDown = event.type === 'mousedown';
+                        });
+
+                        // Move saturation indicator top position after click
+                        $saturation.bind('click mousemove', function (event) {
+                            if (event.type === 'click' || saturationMouseDown) {
+                                $timeout.cancel(saturationTimeout);
+                                saturationTimeout = $timeout((function (event) {
+                                    return function () {
+                                        $scope.setSaturation((event.x - offsetLeft) / saturationWidth);
+                                        $scope.setLightness(((event.y - offsetTop) / saturationHeight));
+                                        $scope.updateView();
+                                    };
+                                })(event), 10);
+                            }
+                        });
+
+                        // Enable mousemove for indicator
+                        $saturation.bind('mouseup mousedown', function (event) {
+                            saturationMouseDown = event.type === 'mousedown';
+                        });
+                    };
+
+                    $scope.setHue = function(h) {
                         this.value.h = h;
                     };
 
@@ -213,48 +253,17 @@
                         this.value.a = parseInt((1 - a) * 100, 10) / 100;
                     };
 
-
-                    // Move hue indicator on click
-                    $hue.bind('click mousemove', function (event) {
-                        if (event.type === 'click' || hueMouseDown) {
-                            $timeout.cancel(hueTimeout);
-                            hueTimeout = $timeout((function (event) {
-                                return function () {
-                                    $scope.setHue(1 - ((event.y - offsetTop) / hueHeight));
-                                    $scope.updateView();
-                                };
-                            })(event), 10);
-                        }
-                    });
-
-                    // Enable mousemove for indicator
-                    $hue.bind('mouseup mousedown', function (event) {
-                        hueMouseDown = event.type === 'mousedown';
-                    });
-
-                    // Move saturation indicator top position after click
-                    $saturation.bind('click mousemove', function (event) {
-                        if (event.type === 'click' || saturationMouseDown) {
-                            $timeout.cancel(saturationTimeout);
-                            saturationTimeout = $timeout((function (event) {
-                                return function () {
-                                    $scope.setSaturation((event.x - offsetLeft) / saturationWidth);
-                                    $scope.setLightness(((event.y - offsetTop) / saturationHeight));
-                                    $scope.updateView();
-                                };
-                            })(event), 10);
-                        }
-                    });
-
-                    // Enable mousemove for indicator
-                    $saturation.bind('mouseup mousedown', function (event) {
-                        saturationMouseDown = event.type === 'mousedown';
-                    });
-
-
+                    /**
+                     * Parse the model into hsla
+                     * @param value
+                     */
                     $scope.parseModel = function (value) {
 
                         var updateModel = false;
+
+                        if (!value || !value.length) {
+                            return;
+                        }
 
                         // Strip # at start
                         if (value.substr(0, 1) === '#') {
@@ -274,6 +283,10 @@
                         }
                     };
 
+                    /**
+                     * Update the view, set top/left of elements, update viewModel if needed
+                     * @param boolean updateViewValue
+                     */
                     $scope.updateView = function (updateViewValue)
                     {
                         $scope.hueIndicatorStyle = { top: (1 - $scope.value.h) * hueHeight + 1 + 'px' };
@@ -291,7 +304,9 @@
                         }
                     };
 
-
+                    /**
+                     * Watch for changes in the model
+                     */
                     $scope.$watch(iAttrs.ngModel, function (value) {
 
                         $timeout.cancel(modelTimeout);
@@ -307,7 +322,11 @@
 
                     });
 
+                    $scope.$on('colorpicker:reinit', function () {
+                        $scope.init();
+                    });
 
+                    $scope.init();
                 }
             };
         }
