@@ -191,8 +191,8 @@
                     $scope.value = {};
 
                     $scope.init = function () {
-                        offsetTop           = iElement[0].offsetTop;
-                        offsetLeft          = iElement[0].offsetLeft;
+                        offsetTop           = iElement[0].getBoundingClientRect().top;
+                        offsetLeft          = iElement[0].getBoundingClientRect().left;
                         $saturation         = angular.element(iElement[0].querySelectorAll('.colorpicker-saturation'));
                         saturationWidth     = $saturation[0].clientWidth;
                         saturationHeight    = $saturation[0].clientHeight;
@@ -200,41 +200,49 @@
                         hueHeight           = $hue[0].clientHeight;
 
                         // Move hue indicator on click
-                        $hue.bind('click mousemove', function (event) {
+                        $hue
+                            .unbind('click mousemove')
+                            .bind('click mousemove', function (event) {
                             if (event.type === 'click' || hueMouseDown) {
-                                $timeout.cancel(hueTimeout);
-                                hueTimeout = $timeout((function (event) {
-                                    return function () {
-                                        $scope.setHue(1 - ((event.y - offsetTop) / hueHeight));
-                                        $scope.updateView();
-                                    };
-                                })(event), 10);
-                            }
-                        });
+                                    $timeout.cancel(hueTimeout);
+                                    hueTimeout = $timeout((function (event) {
+                                        return function () {
+                                            $scope.setHue(1 - ((event.clientY - offsetTop) / hueHeight));
+                                            $scope.updateView();
+                                        };
+                                    })(event), 10);
+                                }
+                            });
 
                         // Enable mousemove for indicator
-                        $hue.bind('mouseup mousedown', function (event) {
-                            hueMouseDown = event.type === 'mousedown';
-                        });
+                        $hue
+                            .unbind('mouseup mousedown')
+                            .bind('mouseup mousedown', function (event) {
+                                hueMouseDown = event.type === 'mousedown';
+                            });
 
                         // Move saturation indicator top position after click
-                        $saturation.bind('click mousemove', function (event) {
-                            if (event.type === 'click' || saturationMouseDown) {
-                                $timeout.cancel(saturationTimeout);
-                                saturationTimeout = $timeout((function (event) {
-                                    return function () {
-                                        $scope.setSaturation((event.x - offsetLeft) / saturationWidth);
-                                        $scope.setLightness(((event.y - offsetTop) / saturationHeight));
-                                        $scope.updateView();
-                                    };
-                                })(event), 10);
-                            }
-                        });
+                        $saturation
+                            .unbind('click mousemove')
+                            .bind('click mousemove', function (event) {
+                                if (event.type === 'click' || saturationMouseDown) {
+                                    $timeout.cancel(saturationTimeout);
+                                    saturationTimeout = $timeout((function (event) {
+                                        return function () {
+                                            $scope.setSaturation((event.clientX - offsetLeft) / saturationWidth);
+                                            $scope.setLightness(((event.clientY - offsetTop) / saturationHeight));
+                                            $scope.updateView();
+                                        };
+                                    })(event), 10);
+                                }
+                            });
 
                         // Enable mousemove for indicator
-                        $saturation.bind('mouseup mousedown', function (event) {
-                            saturationMouseDown = event.type === 'mousedown';
-                        });
+                        $saturation
+                            .unbind('mouseup mousedown')
+                            .bind('mouseup mousedown', function (event) {
+                                saturationMouseDown = event.type === 'mousedown';
+                            });
                     };
 
                     $scope.setHue = function(h) {
@@ -323,7 +331,9 @@
                     });
 
                     $scope.$on('colorpicker:reinit', function () {
-                        $scope.init();
+                        $timeout(function () {
+                            $scope.init();
+                        }, 250);
                     });
 
                     $scope.init();
