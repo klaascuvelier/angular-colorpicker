@@ -20,26 +20,66 @@
              */
             function hslaToRgba(hue, saturation, lightness, alpha)
             {
+                var m1, m2, r, g, b,
+                    hueToRgb = function (m1, m2, hue) {
+                        var v;
+
+                        if (hue < 0) {
+                            hue += 1;
+                        } else if (hue > 1) {
+                            hue -= 1;
+                        }
+
+
+                        if (6 * hue < 1) {
+                            v = m1 + (m2 - m1) * hue * 6;
+                        } else if (2 * hue < 1) {
+                            v = m2;
+                        } else if (3 * hue < 2) {
+                            v = m1 + (m2 - m1) * (2/3 - hue) * 6;
+                        } else {
+                            v = m1;
+                        }
+
+                        return 255 * v;
+                    };
+
+                if (saturation === 0) {
+                    r = g = b = (lightness * 255);
+                } else {
+                    m2 = (lightness <= 0.5) ? lightness * (saturation + 1) : lightness + saturation - lightness * saturation;
+                    m1 = lightness * 2 - m2;
+
+                    r = Math.round(hueToRgb(m1, m2, hue + 1/3));
+                    g = Math.round(hueToRgb(m1, m2, hue));
+                    b = Math.round(hueToRgb(m1, m2, hue - 1/3));
+                }
+
+                return { r: r, g: g, b: b, a: alpha };
+            }
+
+
+            function hslbToHex(hue, saturation, brightness)
+            {
                 var R, G, B, X, C;
 
                 hue *= 360;
                 hue = (hue % 360) / 60;
 
-                C = lightness * saturation;
+                C = brightness * saturation;
                 X = C * (1 - Math.abs(hue % 2 - 1));
-                R = G = B = lightness - C;
+                R = G = B = brightness - C;
 
                 hue = ~~hue;
                 R += [C, X, 0, 0, X, C][hue];
                 G += [X, C, C, X, 0, 0][hue];
                 B += [0, 0, X, C, C, X][hue];
 
-                return {
-                    r: Math.round(R * 255),
-                    g: Math.round(G * 255),
-                    b: Math.round(B * 255),
-                    a: alpha
-                };
+                R = Math.round(R*255);
+                G = Math.round(G*255);
+                B = Math.round(B*255);
+
+                return ((1 << 24) | (parseInt(R, 10) << 16) | (parseInt(G, 10) << 8) | parseInt(B, 10)).toString(16).substr(1);
             }
 
             /**
@@ -165,8 +205,8 @@
                         this.value.s = s;
                     };
 
-                    $scope.setLightness = function(b) {
-                        this.value.b = 1 - b;
+                    $scope.setLightness = function(l) {
+                        this.value.l = 1 - l;
                     };
 
                     $scope.setAlpha = function(a) {
@@ -258,13 +298,12 @@ k
                         };
 
                         $scope.saturationStyle = {
-                            'background-color': hslaToHex($scope.value.h, 1, 1, 1)
+                            'background-color': '#' + hslbToHex($scope.value.h, 1, 1)
                         };
 
-/*
                         if (updateViewValue !== false) {
-                            modelController.$setViewValue(hslaToHex($scope.value.h, $scope.value.s, $scope.value.b, $scope.value.a));
-                        }*/
+                            modelController.$setViewValue(hslaToHex($scope.value.h, $scope.value.s, $scope.value.l, $scope.value.a));
+                        }
                     };
 
 
