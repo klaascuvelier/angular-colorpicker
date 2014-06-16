@@ -113,6 +113,7 @@
              * @param red
              * @param green
              * @param blue
+             * @param alpha
              * @returns {object}
              */
             function rgbaToHsla(red, green, blue, alpha){
@@ -198,7 +199,7 @@
                         $hue
                             .unbind('click mousemove')
                             .bind('click mousemove', function (event) {
-                            if (event.type === 'click' || hueMouseDown) {
+                            if (event.type === 'click' || hueMouseDown) {
                                     $timeout.cancel(hueTimeout);
                                     hueTimeout = $timeout((function (event) {
                                         return function () {
@@ -220,7 +221,7 @@
                         $saturation
                             .unbind('click mousemove')
                             .bind('click mousemove', function (event) {
-                                if (event.type === 'click' || saturationMouseDown) {
+                                if (event.type === 'click' || saturationMouseDown) {
                                     $timeout.cancel(saturationTimeout);
                                     saturationTimeout = $timeout((function (event) {
                                         return function () {
@@ -264,7 +265,7 @@
 
                         var updateModel = false;
 
-                        if (!value || !value.length) {
+                        if (!value || !value.length) {
                             return;
                         }
 
@@ -288,7 +289,7 @@
 
                     /**
                      * Update the view, set top/left of elements, update viewModel if needed
-                     * @param boolean updateViewValue
+                     * @param {boolean} updateViewValue
                      */
                     $scope.updateView = function (updateViewValue)
                     {
@@ -336,5 +337,4 @@
             };
         }
     ]);
-
 })(window, angular);
